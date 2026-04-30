@@ -1,0 +1,91 @@
+---
+title: "Governance Model"
+description: "How the IOX Platform data model is changed, approved, and kept consistent over time."
+---
+
+## Why governance matters
+
+A data model is not a static diagram — it is a living contract between the teams that build on it. Every time an entity changes, every time a relationship is added, every time a decision is made about how data is structured, something downstream is affected: the application, the reports, the integrations, the audit trail.
+
+The IOX Platform governance model exists to ensure that changes to the shared data layer are deliberate, traceable, and communicated. No change is applied silently. Every decision has a record.
+
+## The change workflow
+
+All changes to the IOX Platform data model follow a four-stage workflow:
+
+<Steps>
+  <Step title="Proposed">
+    A change is identified — a new entity, a new relationship, an extension to an existing entity, or a correction. DataModel Studio drafts a **Proposed Update** document that describes what is changing, why, which entities are affected, and whether the change is backward compatible.
+
+    No change is applied to the model at this stage. The proposal exists only for review.
+  </Step>
+  <Step title="Review">
+    The Proposed Update is reviewed. Questions are raised, alternatives are considered, open items are identified. DataModel Studio provides clarifications and revisions as needed.
+
+    Engineering input is sought for any change that touches the physical database schema.
+  </Step>
+  <Step title="Approved">
+    The CTO explicitly approves the Proposed Update. Approval is recorded with the date and the approver.
+
+    Simple, additive, non-breaking changes may be pre-approved directly in the working session without a formal Proposed Update document.
+  </Step>
+  <Step title="Applied">
+    Once approved, the change is applied atomically across all reference documents: the Logical Data Dictionary, the Relationship Catalog, and the Changelog. The Proposed Update is marked as applied.
+
+    The Changelog entry becomes the permanent record of what changed, when, and who approved it.
+  </Step>
+</Steps>
+
+## The Changelog
+
+Every approved and applied change is recorded in the Changelog — one per model (IOX Core, ParametriX, and future modules). The Changelog is the single source of truth for the history of the data model.
+
+Each entry records:
+- The version number and date
+- The type of change (new segment, architectural decision, breaking change, IOX Core extension)
+- The scope — which entities and segments were affected
+- Every change applied, in detail
+- Backward compatibility assessment
+- The approver and approval date
+- A link to the Proposed Update document
+
+<Info>
+  IOX Core is currently at **v1.13**. ParametriX is currently at **v0.6**. The full changelog for each model is available in the reference section of each tab.
+</Info>
+
+## Breaking vs. non-breaking changes
+
+The governance model distinguishes clearly between two types of change:
+
+<CardGroup cols={2}>
+  <Card title="Non-breaking" icon="check" color="#142845">
+    Additive changes — new attributes, new entities, new relationships — that do not affect existing functionality. The default. Applied with minimal friction once approved.
+  </Card>
+  <Card title="Breaking" icon="triangle-exclamation" color="#8FB6DE">
+    Changes that alter or remove existing structure. Flagged explicitly in every Proposed Update. Require a migration strategy, a risk assessment, and explicit approval before being applied.
+  </Card>
+</CardGroup>
+
+Breaking changes are rare by design. The model is built to grow additively. When a breaking change is unavoidable, it is documented in full — what existed before, what exists after, and how the transition is managed.
+
+## Architectural decisions
+
+Beyond individual entity changes, the governance model also records **architectural decisions** — the choices that establish lasting rules for how the model is built. These are the foundational commitments that govern all future work.
+
+There are currently **32 architectural decisions** on record across the IOX Platform. Examples include:
+
+- How foreign keys are named for organisation participation roles
+- How personally identifiable information is classified and flagged
+- How JSON columns are evaluated — whether to keep them as JSON or promote them to first-class entities
+- How module entities reference IOX Core entities
+- How the asset hierarchy is structured in ParametriX
+
+Once recorded, architectural decisions are not reopened without explicit instruction from the CTO. They are the rules of the model, not suggestions.
+
+## Data sensitivity and PII
+
+The governance model includes explicit classification of **Personally Identifiable Information** (PII) across all entities. Every attribute that contains personal data is flagged in the data dictionary.
+
+Current PII-classified fields include user identity data (name, email, phone, avatar), audit log network data (IP address, user agent), and external party contact information on transmittals and queries.
+
+This classification supports data subject rights, access controls, and retention policy decisions — providing the foundation for compliance work as the platform scales.

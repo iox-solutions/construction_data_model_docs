@@ -1,0 +1,86 @@
+---
+title: "Platform Architecture"
+description: "How IOX Core and modules fit together — and the principles that govern the shared data layer."
+---
+
+## The shared-core model
+
+The IOX Platform is built on a principle of **one shared truth**. Rather than each application maintaining its own copy of common data — its own user table, its own project records, its own contract data — every module in the IOX Platform reads from and writes to a single, shared data layer: **IOX Core**.
+
+This is not an integration pattern. It is an architectural constraint. All IOX Platform applications run against the same physical database. IOX Core entities are the canonical source of truth for every shared concept.
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   IOX Platform                      │
+│                                                     │
+│   ┌─────────────┐          ┌─────────────────┐      │
+│   │  ParametriX │  ──FK──▶ │                 │      │
+│   └─────────────┘          │    IOX Core     │      │
+│                            │  (shared data   │      │
+│   ┌─────────────┐          │    layer)       │      │
+│   │ Future      │  ──FK──▶ │                 │      │
+│   │ Module      │          └─────────────────┘      │
+│   └─────────────┘                                   │
+└─────────────────────────────────────────────────────┘
+```
+
+## The governing rules
+
+Three rules govern how the platform data architecture works. These are not guidelines — they are enforced constraints.
+
+<AccordionGroup>
+  <Accordion title="Rule 1 — No module may duplicate an IOX Core entity">
+    If a concept already exists in IOX Core — a Project, a Contract, a User, an Organisation — no module may create its own version of that concept. The module references the IOX Core entity via a foreign key.
+
+    This eliminates synchronisation problems, data drift, and conflicting versions of the same fact.
+  </Accordion>
+  <Accordion title="Rule 2 — Modules extend IOX Core through a governed process">
+    If a module needs to add attributes to a shared entity — for example, adding geographic filtering attributes to the User entity — that extension is proposed as an IOX Core change and goes through the standard approval workflow.
+
+    Extensions are additive and non-breaking wherever possible. The change is applied to IOX Core and becomes available to all modules, not just the requesting one.
+  </Accordion>
+  <Accordion title="Rule 3 — IOX Core is the single source of truth">
+    When there is a conflict between what a module believes and what IOX Core records, IOX Core is correct. Modules are consumers and contributors to the shared layer — they do not override it.
+  </Accordion>
+</AccordionGroup>
+
+## What IOX Core owns
+
+IOX Core is organised into **12 functional segments**. These segments cover every shared concept in the platform:
+
+| Segment | What it covers |
+|---|---|
+| Identity & Access | Users, roles, permissions, organisations, departments |
+| Organisation & Project | Clients, projects, teams, communication protocols |
+| Project & Contract | Contracts, budgets, cost plans, payment schedules, variations |
+| Meetings & Actions | Meetings, agendas, minutes, action items |
+| Documents & Transmittals | Folders, documents, drawings, transmittals |
+| Cost Plan (detail) | Cost plan elements, areas, benchmarks, value engineering |
+| BOQ & Procurement | Bills of quantities, work orders, procurement hierarchy |
+| QA | Quality assurance sheets, checklists |
+| Queries | Contract queries, responses, attachments |
+| Tender & Gates | Gates, tender queries, NCRs, handover packages |
+| Workflow & Templates | Workflow definitions, instances, transitions |
+| Support & Governance | Risks, assumptions, audit log, notifications |
+
+<Note>
+  The QA and Workflow & Templates segments are currently partially documented — full specifications are pending engineering input. All other segments are complete.
+</Note>
+
+## What modules own
+
+Modules own their domain-specific data. ParametriX, for example, owns the Masterplan, MasterplanAsset, BuildingCost, and Reference Data entities — concepts that only exist within the parametric cost modelling domain.
+
+Module entities reference IOX Core entities via direct foreign keys. A Masterplan, for instance, belongs to a Contract (IOX Core) and was created by a User (IOX Core). The module stores only what it uniquely needs to store.
+
+## Why this matters
+
+The shared-core architecture delivers compounding benefits as the platform grows:
+
+**Consistency** — every module sees the same project, the same contract, the same cost plan. There is no reconciliation, no sync job, no risk of modules holding different versions of the same fact.
+
+**Auditability** — a single audit log (in IOX Core) captures activity across the entire platform. There is one place to look, one trail to follow.
+
+**Extensibility** — adding a new module does not require rebuilding shared concepts. A new module can integrate with the full IOX Core data layer from day one, referencing whatever it needs.
+
+**Governance** — the change workflow ensures that modifications to shared entities are reviewed, approved, and applied once — not independently in each module.

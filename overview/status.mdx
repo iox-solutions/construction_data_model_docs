@@ -1,0 +1,139 @@
+---
+title: "Current Status"
+description: "The live documentation status of the IOX Platform data model — updated after every approved session."
+---
+
+## Summary
+
+<CardGroup cols={3}>
+  <Card title="IOX Core" icon="database" color="#142845">
+    **v1.13** — Active
+
+    12 segments covered. 10 complete, 2 partial stubs pending engineering input.
+
+    ~65 entities · ~140 relationships · 29 decisions
+  </Card>
+  <Card title="ParametriX" icon="chart-line" color="#8FB6DE">
+    **v0.6** — In Development
+
+    2 segments complete. 9 entities fully documented.
+
+    13 relationships · 6 decisions · 4 open engineering items
+  </Card>
+  <Card title="Future Modules" icon="plus" color="#142845">
+    **Planned**
+
+    Additional modules to be integrated into the IOX Platform as the suite expands.
+  </Card>
+</CardGroup>
+
+---
+
+## IOX Core — Segment Status
+
+| Segment | Status | Entities | What it covers |
+|---|---|---|---|
+| Identity & Access | ✅ Complete | 7 | Users, roles, permissions, organisations, departments |
+| Organisation & Project | ✅ Complete | 5 | Clients, projects, teams, communication protocols |
+| Project & Contract | ✅ Complete | 14 | Contracts, budgets, cost plans, payment schedules, variations |
+| Meetings & Actions | ✅ Complete | 5 | Meetings, agendas, minutes, action items |
+| Documents & Transmittals | ✅ Complete | 6 | Folders, documents, drawings, transmittals |
+| Cost Plan (detail) | ✅ Complete | 4 | Cost plan elements, areas, benchmarks, value engineering |
+| BOQ & Procurement | ✅ Complete | 7 | Bills of quantities, work orders, procurement hierarchy |
+| QA | ⚠️ Partial stub | 3 | Quality assurance sheets and checklists |
+| Queries | ✅ Complete | 3 | Contract queries, responses, attachments |
+| Tender & Gates | ✅ Complete | 7 | Gates, tender queries, NCRs, handover packages |
+| Workflow & Templates | ⚠️ Partial stub | 4 | Workflow definitions, instances, transitions |
+| Support & Governance | ✅ Complete | 4 | Risks, assumptions, audit log, notifications |
+
+<Warning>
+  The **QA** and **Workflow & Templates** segments are documented as partial stubs. The entities are identified and their known attributes are recorded, but full specifications are pending engineering clarification. These segments will be completed once engineering input is received.
+</Warning>
+
+---
+
+## ParametriX — Segment Status
+
+| Segment | Status | Entities | What it covers |
+|---|---|---|---|
+| Masterplan & Outputs | ✅ Complete* | 4 | Masterplans, asset line items, phases, building costs |
+| Reference Data | ✅ Complete* | 5 | Asset hierarchy, cost model entries, parametric matrix, cost factors, benchmark data |
+
+*Four open items on the Masterplan entity are pending engineering input. All other attributes and relationships are fully documented.
+
+### IOX Core entities used by ParametriX
+
+ParametriX references four IOX Core entities directly. It does not duplicate any of them.
+
+| IOX Core Entity | How ParametriX uses it |
+|---|---|
+| User | Every Masterplan records who created it |
+| Contract | Every Masterplan belongs to exactly one Contract |
+| BenchmarkProject | A Masterplan may optionally reference a benchmark for comparison |
+| AuditLog | All ParametriX activity is captured in the shared platform audit trail |
+
+---
+
+## Open Engineering Items
+
+The following items are documented and awaiting engineering input before they can be fully specified.
+
+### IOX Core
+
+<AccordionGroup>
+  <Accordion title="QA Segment (3 entities)">
+    - Is Checklist a reusable template, or the same concept as QASheet at a different stage?
+    - What attributes does ChecklistItem carry? Does it have a result or outcome field?
+    - What is the QASheet outcome structure — pass/fail, score, findings list?
+    - What status lifecycle does a QASheet have?
+  </Accordion>
+  <Accordion title="Workflow & Templates Segment (4 entities)">
+    - Is WorkflowDefinition the same concept as Template? If so, which should be canonical?
+    - What attributes does WorkflowDefinition carry — states, transitions, versioning?
+    - What status lifecycle does a WorkflowInstance have?
+    - How are system-triggered transitions (with no User actor) handled?
+  </Accordion>
+  <Accordion title="BOQStrategy (1 entity stub)">
+    - What is the purpose of BOQStrategy?
+    - Is it project-scoped or contract-scoped?
+    - What attributes does it carry?
+  </Accordion>
+</AccordionGroup>
+
+### ParametriX
+
+<AccordionGroup>
+  <Accordion title="Masterplan entity (4 open items)">
+    - `isPublic` visibility semantics — what access does this grant, and to whom?
+    - `developer` field — FK to IOX Core Organisation, or remain as free text?
+    - `country` field — standardised enum or free text?
+    - Asset classification enum values and ParametricMatrix parameter/option values — to be confirmed with engineering
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Future Work on Record
+
+The following items are identified for future development. They are not yet proposed or scheduled.
+
+**IOX Core**
+- QueryAttachment → Document consolidation
+- TenderQuery → Query consolidation
+- DrawingRevision entity (if immutable revision tracking is required)
+- Physical Model and Mappings pages — not yet populated
+- Markdown and YAML developer artefacts — not yet generated
+- ER diagrams — not yet generated
+- Outstanding enum values to be confirmed: Document type, Drawing discipline, Meeting type, Project status, BOQ status, WorkOrder status, Risk category, Notification type codes
+
+**ParametriX**
+- Infrastructure cost entities — not yet modelled
+- Public realm cost entities — not yet modelled
+- Additional assets and other costs entities — not yet modelled
+- Physical Model and Mappings — not yet populated
+- Markdown and YAML developer artefacts — not yet generated
+- ER diagrams — not yet generated
+
+---
+
+*Last updated: 2026-04-30 · IOX Core v1.13 · ParametriX v0.6*

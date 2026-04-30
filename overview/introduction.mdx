@@ -1,0 +1,61 @@
+---
+title: "IOX Platform"
+description: "A Cost Intelligence Suite for construction — built on a shared, governed data architecture."
+---
+
+## What is the IOX Platform?
+
+The IOX Platform is a **Cost Intelligence Suite** for construction projects. It brings together cost planning, procurement, contract management, document control, and parametric cost modelling into a single, integrated system — all running against a common, governed data layer.
+
+Rather than a collection of disconnected tools, the IOX Platform is designed as a coherent whole. Every module shares the same foundational data — the same projects, contracts, organisations, and users — with no duplication and no synchronisation overhead.
+
+## How it is structured
+
+The platform is built in two layers.
+
+<CardGroup cols={2}>
+  <Card title="IOX Core" icon="database" color="#142845">
+    The shared data foundation. IOX Core defines and owns the canonical data for every concept that is shared across the platform — identity, organisations, projects, contracts, documents, cost plans, procurement, and more.
+
+    Every module reads from and writes to IOX Core. There is one version of the truth.
+  </Card>
+  <Card title="Modules" icon="puzzle-piece" color="#8FB6DE">
+    Specialist applications built on top of IOX Core. Each module adds domain-specific capability — parametric cost modelling, for example — without duplicating shared data.
+
+    Modules reference IOX Core entities directly. They extend the platform; they do not replicate it.
+  </Card>
+</CardGroup>
+
+## Current modules
+
+| Module | Type | Status | Purpose |
+|---|---|---|---|
+| IOX Core | Platform foundation | Active — v1.13 | Shared data layer for all modules |
+| ParametriX | Cost modelling module | In development — v0.6 | Parametric masterplan cost modelling |
+
+## What this documentation covers
+
+This site is the canonical reference for the IOX Platform data architecture. It covers:
+
+- **Platform architecture** — how IOX Core and modules fit together, and the governing rules for the shared data layer
+- **IOX Core** — all 12 functional segments, their entities, attributes, relationships, and the decisions that shaped them
+- **ParametriX** — the parametric cost modelling module: its entities, its integration with IOX Core, and the calculation model
+- **Governance** — how the data model is versioned, how changes are proposed and approved, and how the audit trail is maintained
+
+<Info>
+  This documentation reflects the approved, governed state of the IOX Platform data model as of **April 2026**. All changes are tracked in the IOX Core and ParametriX changelogs.
+</Info>
+
+## Where to start
+
+<CardGroup cols={3}>
+  <Card title="Platform Architecture" icon="sitemap" href="/overview/architecture">
+    Understand how IOX Core and modules relate, and the principles that govern the shared data layer.
+  </Card>
+  <Card title="IOX Core Segments" icon="layer-group" href="/iox-core/segments">
+    Explore the 12 functional areas of IOX Core — from Identity & Access to Support & Governance.
+  </Card>
+  <Card title="ParametriX" icon="chart-line" href="/parametrix/overview">
+    Learn how the parametric cost modelling module is built on top of IOX Core.
+  </Card>
+</CardGroup>

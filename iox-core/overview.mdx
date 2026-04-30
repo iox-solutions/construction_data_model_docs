@@ -1,0 +1,71 @@
+---
+title: "IOX Core"
+description: "The shared data foundation of the IOX Platform — the canonical source of truth for every concept shared across modules."
+---
+
+## What is IOX Core?
+
+IOX Core is the data backbone of the IOX Platform. It defines and owns the authoritative record for every concept that is shared across the platform: the projects being managed, the contracts in place, the organisations involved, the people using the system, the documents being exchanged, the costs being tracked.
+
+Every module in the IOX Platform — ParametriX today, others in the future — is built on top of IOX Core. Modules do not maintain their own copies of shared data. They reference IOX Core directly.
+
+This means there is one version of a project, one version of a contract, one version of a user. No reconciliation. No drift. No conflicts between what one module thinks and what another believes.
+
+## Current version
+
+IOX Core is currently at **v1.13**, with all 12 functional segments documented. 10 segments are fully complete. 2 segments (QA and Workflow & Templates) are partially documented as stubs, pending engineering clarification on the full specification.
+
+The model covers approximately **65 entities** and **140 relationships**, governed by **29 architectural decisions**.
+
+## The 12 functional segments
+
+IOX Core is organised into 12 functional areas. Each segment owns a related cluster of entities — the data concepts that naturally belong together.
+
+<CardGroup cols={2}>
+  <Card title="Identity & Access" icon="user-shield" href="/iox-core/segments/identity-access">
+    Who can use the platform and what they are permitted to do. Users, roles, permissions, organisations, and departments.
+  </Card>
+  <Card title="Organisation & Project" icon="building" href="/iox-core/segments/organisation-project">
+    The clients and projects at the heart of every engagement. Project teams and communication protocols.
+  </Card>
+  <Card title="Project & Contract" icon="file-contract" href="/iox-core/segments/project-contract">
+    The contractual and financial backbone. Contracts, budgets, cost plans, payment schedules, and variation orders.
+  </Card>
+  <Card title="Meetings & Actions" icon="users" href="/iox-core/segments/meetings-actions">
+    The record of decisions made and actions committed to. Meeting agendas, minutes, and action items.
+  </Card>
+  <Card title="Documents & Transmittals" icon="folder-open" href="/iox-core/segments/documents-transmittals">
+    The document control layer. Folders, documents, drawings, and the formal transmittal of information between parties.
+  </Card>
+  <Card title="Cost Plan (detail)" icon="calculator" href="/iox-core/segments/cost-plan">
+    The detail behind the cost plan. Elements, areas, benchmark comparisons, and value engineering items.
+  </Card>
+  <Card title="BOQ & Procurement" icon="list-check" href="/iox-core/segments/boq-procurement">
+    Bills of quantities, procurement hierarchy, and work orders. The structured breakdown of what is to be built and at what cost.
+  </Card>
+  <Card title="QA" icon="clipboard-check" href="/iox-core/segments/qa">
+    Quality assurance processes. Checklists and QA sheets. *(Partial stub — pending engineering input)*
+  </Card>
+  <Card title="Queries" icon="circle-question" href="/iox-core/segments/queries">
+    The formal query process between parties. Contract queries, responses, and supporting attachments.
+  </Card>
+  <Card title="Tender & Gates" icon="door-open" href="/iox-core/segments/tender-gates">
+    Tender management and project gates. Gate checklists, tender queries, NCRs, and handover packages.
+  </Card>
+  <Card title="Workflow & Templates" icon="diagram-project" href="/iox-core/segments/workflow-templates">
+    The workflow engine. Definitions, instances, and transitions that govern how processes move through the platform. *(Partial stub — pending engineering input)*
+  </Card>
+  <Card title="Support & Governance" icon="shield-halved" href="/iox-core/segments/support-governance">
+    Platform-wide risk, assumptions, the audit trail, and notifications.
+  </Card>
+</CardGroup>
+
+## How IOX Core is governed
+
+IOX Core is version-controlled. Every change — every new entity, every new attribute, every architectural decision — goes through the standard approval workflow and is recorded in the IOX Core Changelog.
+
+The Changelog is the single source of truth for the history of the model. It records what changed, when, who approved it, and whether the change was backward compatible.
+
+<Card title="View the IOX Core Changelog" icon="clock-rotate-left" href="/iox-core/changelog">
+  13 approved updates from v1.0 to v1.13, with full detail on every change applied.
+</Card>

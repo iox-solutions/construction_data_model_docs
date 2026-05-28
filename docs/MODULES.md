@@ -5,7 +5,7 @@
 
 Generated from `schema/clustering/module-mapping.json` and `COMMENT ON TABLE` text in the migration SQL. Updated whenever the schema or module mapping changes — see `GOVERNANCE.md`.
 
-**Counts**: 84 base tables across 6 modules. 6 reporting views.
+**Counts**: 84 base tables across 5 modules. 6 reporting views.
 
 ## Modules
 
@@ -14,7 +14,7 @@ Generated from `schema/clustering/module-mapping.json` and `COMMENT ON TABLE` te
 
 Shared data model — foundational objects referenced across all modules
 
-**Tables (25)**
+**Tables (26)**
 
 | Table | Description | Outbound FKs | PII |
 |---|---|---|---|
@@ -39,6 +39,7 @@ Shared data model — foundational objects referenced across all modules
 | `PerformanceRating` | _no description_ | `contractId → Contract.contractId`, `ratedById → User.userId` | — |
 | `Permission` | _no description_ | — | — |
 | `Project` | Primary scoping entity for all work deliverables | `clientId → Client.clientId` | — |
+| `ProjectTeam` | _no description_ | `projectId → Project.projectId`, `userId → User.userId`, `userRoleId → UserRole.userRoleId` | — |
 | `Role` | Named permission sets with hierarchical organization | `parentRoleId → Role.roleId` | — |
 | `RolePermission` | _no description_ | `roleId → Role.roleId`, `permissionId → Permission.permissionId` | — |
 | `User` | Core user identity and authentication. | — | ⚠️ email, firstName, lastName, phone, avatar |
@@ -110,7 +111,7 @@ Tender analysis — manage the full procurement and tendering lifecycle
 - Track BOQs, addenda and work orders
 - Assess value engineering items against the cost plan
 
-**Tables (37)**
+**Tables (39)**
 
 | Table | Description | Outbound FKs | PII |
 |---|---|---|---|
@@ -125,6 +126,7 @@ Tender analysis — manage the full procurement and tendering lifecycle
 | `BOQVersion` | _no description_ | `boqId → BOQ.boqId`, `createdById → User.userId` | — |
 | `Checklist` | _no description_ | — | — |
 | `ChecklistItem` | _no description_ | — | — |
+| `CommunicationProtocol` | _no description_ | `projectId → Project.projectId` | — |
 | `Document` | Logical document record with versioning via DocumentVersion | `projectId → Project.projectId`, `folderId → Folder.folderId`, `uploadedById → User.userId`, `currentVersionId → DocumentVersion.documentVersionId` | — |
 | `DocumentVersion` | _no description_ | `documentId → Document.documentId`, `uploadedById → User.userId` | — |
 | `Drawing` | _no description_ | `projectId → Project.projectId`, `uploadedById → User.userId` | — |
@@ -138,6 +140,7 @@ Tender analysis — manage the full procurement and tendering lifecycle
 | `MeetingMinutes` | _no description_ | `meetingId → Meeting.meetingId`, `approvedById → User.userId` | — |
 | `NCR` | _no description_ | `contractId → Contract.contractId`, `raisedByUserId → User.userId`, `assignedToId → User.userId` | — |
 | `NoticeOfWin` | _no description_ | `projectId → Project.projectId` | — |
+| `QASheet` | _no description_ | `contractId → Contract.contractId` | — |
 | `Query` | Planning-phase clarification requests scoped to Contract | `contractId → Contract.contractId`, `raisedById → User.userId`, `assignedToId → User.userId` | — |
 | `QueryAttachment` | _no description_ | `queryId → Query.queryId`, `uploadedById → User.userId` | — |
 | `QueryResponse` | _no description_ | `queryId → Query.queryId`, `respondedById → User.userId` | — |
@@ -180,16 +183,6 @@ Cost report management — track and report contract financials, variations and 
 Rate and benchmark data management — maintain reference cost data and market rates
 
 _No tables in this module yet._
-
-### Unassigned
-
-Tables in the schema that are not listed under any module in `module-mapping.json`. These are flagged by `schema-lint` rule R7 and tracked in [RFC 0001](./rfcs/0001-resolve-orphan-tables.md).
-
-| Table | Outbound FKs |
-|---|---|
-| `CommunicationProtocol` | `projectId → Project.projectId` |
-| `ProjectTeam` | `projectId → Project.projectId`, `userId → User.userId`, `userRoleId → UserRole.userRoleId` |
-| `QASheet` | `contractId → Contract.contractId` |
 
 ## Views
 

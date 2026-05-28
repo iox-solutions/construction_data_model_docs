@@ -1,9 +1,9 @@
 # RFC 0001 — Resolve orphan tables
 
-- **Status**: Draft
+- **Status**: Accepted
 - **Author**: Schema Steward
 - **Created**: 2026-05-28
-- **Decision deadline**: TBD (5 business days after status moves to "Open for comment")
+- **Decided**: 2026-05-28
 - **Related**: schema-lint rule `R7: orphan-table`; CLAUDE.md Next Steps
 
 ## Summary
@@ -99,7 +99,30 @@ DROP TABLE "Checklist";
 - Confirm `QASheet.projectId` FK target — schema-lint suggests it FKs to `Contract` per V1.12. If so, the column name is misleading and would need correction before delete-or-keep is decided. Action: verify via inspection before acceptance.
 - Is there a fourth orphan-adjacent case in `Notification`, `AuditLog`, `PerformanceRating` that the `exclude[]` array is hiding? Those are listed under `exclude[]` in `module-mapping.json` — meaning "deliberately not shown in the module diagram." This RFC does not propose changing that.
 
+## Decision (2026-05-28)
+
+Schema Steward accepted all three resolutions; only one deviates from the original recommendation.
+
+| # | Table | Decision | Rationale |
+|---|---|---|---|
+| 1 | `ProjectTeam` | **Assign to Core** (Option A — recommended) | Identity/access infrastructure; surfaces alongside `User`/`Role`/`UserRole`. Pure config change. |
+| 2 | `CommunicationProtocol` | **Assign to ProcureX** (Option A — recommended) | Lives where transmittal/query workflows consume it. Pure config change. |
+| 3 | `QASheet` (+ `Checklist`, `ChecklistItem`) | **Assign to ProcureX** (no DROP) | Steward declined the recommended Option A (delete). QA workflow is procurement/delivery-adjacent (sibling to NCR which is already in ProcureX). Stubs retained for a future QA RFC to flesh out rather than rebuild from zero. |
+
+Net effect of the config change:
+
+- `ProjectTeam` added to `modules.core.tables`.
+- `CommunicationProtocol` and `QASheet` added to `modules.procurex.tables`.
+- `Checklist`/`ChecklistItem` were already in `modules.procurex.tables` — no edit needed.
+- `schema-lint` R7 (orphan-table) goes from 3 warnings to 0.
+
+### Follow-up surfaced during landing
+
+While inspecting `QASheet` to verify the column-name flag from the RFC's "Risks", I found that V1.12 line 88 declares a foreign key on `QASheet.contractId` — a column that does not exist in the `QASheet` CREATE TABLE (V1.3–V1.11 only defines `qaSheetId, projectId, title, status`). The static schema parser silently accepts this, but `migration-test.sh` would fail at this statement under `ON_ERROR_STOP=1`. The handover's verification list did **not** include `migration-test.sh`, so this has been latent.
+
+**Disposition**: this is independent of RFC 0001's module reassignment. It will be addressed as part of RFC 0002's V1.14 migration (adding `contractId` to `QASheet` and re-adding the FK there), keeping V1.12 immutable per Flyway convention.
+
 ## Approval
 
-- [ ] Schema Steward
+- [x] Schema Steward (2026-05-28)
 - [ ] (No module owners assigned yet — Schema Steward signs off solo until owners are named.)

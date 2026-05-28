@@ -15,6 +15,13 @@ Module versions (ParametriX, ProcureX, etc.) are pinned to a Core MAJOR.MINOR �
 
 ## [Unreleased]
 
+### Changed
+- Module reassignment (RFC 0001, behavioral — no SQL):
+  - `ProjectTeam` assigned to **Core** (identity infrastructure).
+  - `CommunicationProtocol` assigned to **ProcureX** (consumed by transmittal/query workflows).
+  - `QASheet` assigned to **ProcureX** (QA workflow sits alongside NCR; stubs retained for future fleshing-out rather than deletion).
+  - `schema-lint` R7 (orphan-table) drops from 3 warnings to 0.
+
 ### Added
 - `docker-compose.yml` for one-command local Postgres with full schema and seed data applied.
 - `@iox/types` package — generated TypeScript interfaces, module map, FK catalogue, and `EntityType` union from the migration SQL.
@@ -27,11 +34,14 @@ Module versions (ParametriX, ProcureX, etc.) are pinned to a Core MAJOR.MINOR �
 - `.github/pull_request_template.md` and `docs/rfcs/0000-template.md`.
 
 ### Known issues surfaced by lint
-- `User.password` is a plaintext-named column — should be `passwordHash` (see RFC backlog).
-- Two cross-module FK violations:
+- `User.password` is a plaintext-named column — should be `passwordHash` (see RFC 0002).
+- Two cross-module FK violations (see RFC 0003):
   - `CertifiedPaymentAllocation` (core) → `CertifiedPayment` (reportx)
   - `CostPlanElement` (core) → `CostPlanArea` (planx)
-- Three orphan tables (`ProjectTeam`, `CommunicationProtocol`, `QASheet`) — not assigned to any module.
+- ~~Three orphan tables (`ProjectTeam`, `CommunicationProtocol`, `QASheet`)~~ — resolved by RFC 0001 above.
+
+### Known issues surfaced during landing
+- **V1.12 broken FK**: `ALTER TABLE "QASheet" ADD CONSTRAINT fk_QASheet_contractId` references a column that does not exist in `QASheet`. Static parsers silently accept it; `migration-test.sh` under `ON_ERROR_STOP=1` would fail at this line. To be fixed in RFC 0002's V1.14 migration (add the column + re-issue the FK there; V1.12 remains immutable).
 
 These predate the v1.13 baseline and are tracked for resolution in the next minor.
 

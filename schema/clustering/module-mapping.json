@@ -25,7 +25,8 @@
         "PaymentSchedule",
         "PaymentScheduleItem",
         "CertifiedPaymentAllocation",
-        "BenchmarkProject"
+        "BenchmarkProject",
+        "ProjectTeam"
       ]
     },
     "parametrix": {
@@ -101,6 +102,8 @@
         "Assumption",
         "Checklist",
         "ChecklistItem",
+        "QASheet",
+        "CommunicationProtocol",
         "NCR",
         "Addendum",
         "WorkflowDefinition",

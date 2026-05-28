@@ -22,6 +22,7 @@ Shared data model — foundational objects referenced across all modules
 | `BenchmarkProject` | _no description_ | `createdById → User.userId` | — |
 | `Budget` | _no description_ | `contractId → Contract.contractId` | — |
 | `BudgetVersion` | _no description_ | `budgetId → Budget.budgetId`, `createdById → User.userId` | — |
+| `CertifiedPayment` | _no description_ | `contractId → Contract.contractId`, `certifiedById → User.userId` | — |
 | `CertifiedPaymentAllocation` | _no description_ | `certifiedPaymentId → CertifiedPayment.certifiedPaymentId`, `paymentScheduleItemId → PaymentScheduleItem.paymentScheduleItemId` | — |
 | `Client` | _no description_ | `organizationId → Organization.organizationId` | — |
 | `Contract` | Top-level contract entity with financial and temporal scope | `projectId → Project.projectId` | — |
@@ -29,7 +30,6 @@ Shared data model — foundational objects referenced across all modules
 | `ContractStage` | _no description_ | `contractId → Contract.contractId` | — |
 | `Contractor` | _no description_ | `contractId → Contract.contractId`, `organizationId → Organization.organizationId` | — |
 | `CostPlan` | Estimate and cost tracking at contract level | `contractId → Contract.contractId`, `createdById → User.userId`, `benchmarkProjectId → BenchmarkProject.benchmarkProjectId` | — |
-| `CostPlanElement` | _no description_ | `costPlanId → CostPlan.costPlanId`, `costPlanAreaId → CostPlanArea.costPlanAreaId` | — |
 | `CostPlanVersion` | _no description_ | `costPlanId → CostPlan.costPlanId`, `createdById → User.userId` | — |
 | `Department` | _no description_ | `headUserId → User.userId`, `parentDepartmentId → Department.departmentId`, `organizationId → Organization.organizationId` | — |
 | `Notification` | System-generated alerts to users by event type | `userId → User.userId` | — |
@@ -91,11 +91,12 @@ Cost plan management — develop, issue and maintain cost plans through the proj
 - Maintain alignment between plan structure and project budget
 - Track cost plan evolution across multiple design iterations
 
-**Tables (1)**
+**Tables (2)**
 
 | Table | Description | Outbound FKs | PII |
 |---|---|---|---|
 | `CostPlanArea` | _no description_ | `costPlanId → CostPlan.costPlanId` | — |
+| `CostPlanElement` | _no description_ | `costPlanId → CostPlan.costPlanId`, `costPlanAreaId → CostPlanArea.costPlanAreaId` | — |
 
 ### ProcureX
 
@@ -168,11 +169,10 @@ Cost report management — track and report contract financials, variations and 
 - Report live contract financial position
 - Provide project and programme-level financial dashboards
 
-**Tables (4)**
+**Tables (3)**
 
 | Table | Description | Outbound FKs | PII |
 |---|---|---|---|
-| `CertifiedPayment` | _no description_ | `contractId → Contract.contractId`, `certifiedById → User.userId` | — |
 | `EarlyWarning` | _no description_ | `contractId → Contract.contractId`, `raisedById → User.userId`, `assignedToId → User.userId` | — |
 | `EarlyWarningVariationOrderLink` | _no description_ | `earlyWarningId → EarlyWarning.earlyWarningId`, `variationOrderId → VariationOrder.variationOrderId` | — |
 | `VariationOrder` | _no description_ | `contractId → Contract.contractId`, `createdById → User.userId` | — |

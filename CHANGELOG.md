@@ -24,6 +24,10 @@ Module versions (ParametriX, ProcureX, etc.) are pinned to a Core MAJOR.MINOR �
   - `CommunicationProtocol` → **ProcureX** (consumed by transmittal/query workflows).
   - `QASheet` → **ProcureX** (sibling to NCR; stubs retained for a future QA RFC rather than dropped).
   - `schema-lint` R7 (orphan-table) drops from 3 warnings to 0.
+- **RFC 0003** (additive — module-mapping.json only, no SQL): two cross-module FK violations resolved by reclassification.
+  - `CertifiedPayment` moved from **ReportX** to **Core** (peer to `PaymentSchedule`).
+  - `CostPlanElement` moved from **Core** to **PlanX** (PlanX now owns the full cost-plan elemental structure).
+  - `schema-lint` R1 (no-cross-module-fk) drops from 2 errors to 0.
 
 ### Added
 - V1.14 migration repairs three pre-existing broken FK declarations from V1.12 (columns that were never added to the corresponding CREATE TABLE statements):
@@ -43,15 +47,13 @@ Module versions (ParametriX, ProcureX, etc.) are pinned to a Core MAJOR.MINOR �
 - `ENGINEER_HANDBOOK.md` — consumer-facing intro.
 - `.github/pull_request_template.md` and `docs/rfcs/0000-template.md`.
 
-### Outstanding known issues
-- Two cross-module FK violations (see RFC 0003):
-  - `CertifiedPaymentAllocation` (core) → `CertifiedPayment` (reportx)
-  - `CostPlanElement` (core) → `CostPlanArea` (planx)
-
 ### Resolved this cycle
 - ~~Three orphan tables (`ProjectTeam`, `CommunicationProtocol`, `QASheet`)~~ — resolved by RFC 0001.
 - ~~`User.password` plaintext-named column~~ — resolved by RFC 0002 (V1.14).
+- ~~Two cross-module FK violations (`CertifiedPaymentAllocation` → `CertifiedPayment`; `CostPlanElement` → `CostPlanArea`)~~ — resolved by RFC 0003.
 - ~~V1.12 broken FK declarations (QASheet/BOQ/Query)~~ — resolved by V1.14 (see Added above).
+
+`schema-lint` now reports **0 errors** (down from 3 at v1.13). Remaining warnings are advisory: PII-flagging on `Organization`, missing `updatedAt` columns on ParametriX append-only tables.
 
 ---
 

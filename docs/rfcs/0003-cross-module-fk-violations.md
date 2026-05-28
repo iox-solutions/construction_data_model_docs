@@ -1,9 +1,9 @@
 # RFC 0003 — Resolve cross-module FK violations
 
-- **Status**: Draft
+- **Status**: Accepted
 - **Author**: Schema Steward
 - **Created**: 2026-05-28
-- **Decision deadline**: TBD
+- **Decided**: 2026-05-28
 - **Related**: schema-lint rule `R1: no-cross-module-fk`; [`GOVERNANCE.md`](../../GOVERNANCE.md) — The One Rule
 
 ## Summary
@@ -108,7 +108,25 @@ No deprecation window required — this is reclassification, not a schema change
 - The recommended Option B for violation 2 moves `CostPlanElement` to PlanX. Verify no cross-module FK to `CostPlanElement` from another non-core module — schema-lint will catch this. Spot-check `ParametricEstimate` references CostPlan (the anchor), not CostPlanElement.
 - After Option B, PlanX has two tables (`CostPlanArea`, `CostPlanElement`). That's still small, and is honest about PlanX's scope. Adding more before a consumer exists is premature.
 
+## Decision (2026-05-28)
+
+Both recommendations accepted by Schema Steward. Pure `module-mapping.json` edit; no SQL changes.
+
+| Violation | Decision | Resulting ownership |
+|---|---|---|
+| `CertifiedPaymentAllocation` (core) → `CertifiedPayment` (reportx) | **Option A** — Move `CertifiedPayment` to Core | `CertifiedPayment` joins `PaymentSchedule`/`PaymentScheduleItem` in Core as base payment-lifecycle data. ReportX keeps `EarlyWarning`, `VariationOrder`, and reporting views — what it actually adds over Core. |
+| `CostPlanElement` (core) → `CostPlanArea` (planx) | **Option B** — Move `CostPlanElement` to PlanX | PlanX now owns both cost-plan-structure tables (`CostPlanArea`, `CostPlanElement`). Core retains the `CostPlan` anchor; PlanX owns the breakdown. |
+
+Edits to `schema/clustering/module-mapping.json`:
+
+- `CertifiedPayment` removed from `reportx.tables`, added to `core.tables`.
+- `CostPlanElement` removed from `core.tables`, added to `planx.tables`.
+- `connectionDescriptions["core.CertifiedPaymentAllocation:reportx"]` removed (no longer cross-module).
+- `connectionDescriptions["core.CostPlanElement:planx"]` reworked into `planx:CostPlan_elements` describing the now intra-PlanX relationship.
+
+Lint result after edit: **`schema-lint` errors drop from 2 to 0** (and from 3 to 0 over the cycle, counting RFC 0002's R6).
+
 ## Approval
 
-- [ ] Schema Steward
+- [x] Schema Steward (2026-05-28)
 - [ ] (Future: ReportX owner and PlanX owner once named)

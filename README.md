@@ -1,226 +1,120 @@
-## Quick Start
+# IOX
 
-### Prerequisites
-- PostgreSQL 12+
-- Flyway CLI or equivalent migration tool
+> Shared data model for construction project cost management, procurement, and delivery.
 
-### Apply Migrations
+IOX is the PostgreSQL schema and consumer contracts that every product in the IOX ecosystem builds against. Six product modules — **ParametriX, PlanX, ProcureX, ReportX, PlaceholderX** — share one Core (`CostPlan`, `Project`, `Contract`) and one set of patterns.
 
-```bash
-# Using Flyway
-flyway -url=jdbc:postgresql://localhost:5432/iox_dev \
-       -user=postgres \
-       -password=yourpassword \
-       -locations=filesystem:schema/migrations/iox-core \
-       migrate
-
-# Then apply ParametriX (optional)
-flyway -url=jdbc:postgresql://localhost:5432/iox_dev \
-       -user=postgres \
-       -password=yourpassword \
-       -locations=filesystem:schema/migrations/parametrix \
-       migrate
-```
-
-### Using PostgreSQL psql directly
-
-```bash
-# Connect to database
-psql -U postgres -d iox_dev
-
-# Apply IOX Core migrations in order
-\i schema/migrations/iox-core/V1.0__iox_core_project_contract.sql
-\i schema/migrations/iox-core/V1.1__iox_core_identity_access.sql
-\i schema/migrations/iox-core/V1.2__iox_core_organisation_project.sql
-\i schema/migrations/iox-core/V1.3_to_V1.11__iox_core_remaining_segments.sql
-\i schema/migrations/iox-core/V1.12__iox_core_extensions_and_foreign_keys.sql
-\i schema/migrations/iox-core/V1.13__iox_core_schema_completion.sql
-
-# Apply ParametriX (optional)
-\i schema/migrations/parametrix/V0.1_to_V0.6__parametrix_parametric_estimation.sql
-```
-
-## Schema Overview
-
-### IOX Core (70 base tables + 6 materialized views across 12 functional segments)
-
-| Segment | Entities | Version |
-|---------|----------|---------|
-| Identity & Access | 7 | v1.1 |
-| Organisation & Project | 5 | v1.2 |
-| Meetings & Actions | 5 | v1.3 |
-| Documents & Transmittals | 6 | v1.4 |
-| Cost Plan (detail) | 4 | v1.5 |
-| BOQ & Procurement | 7 | v1.6 |
-| QA | 3 | v1.7 |
-| Queries | 3 | v1.8 |
-| Tender & Gates | 7 | v1.9 |
-| Workflow & Templates | 4 | v1.10 |
-| Support & Governance | 4 | v1.11 |
-| Core Entities (Project & Contract) | 15 | v1.0 |
-
-### ParametriX (14 tables)
-
-- Parametric cost modeling
-- Parameter management and calibration
-- Estimate generation and sensitivity analysis
-- Risk adjustment tracking
-
-## Migration Order
-
-**MUST be applied in version order due to foreign key dependencies:**
-
-1. V1.0 — Contract baseline
-2. V1.1 — Identity & Access (adds FKs back to v1.0)
-3. V1.2 — Organisation & Project
-4. V1.3–V1.11 — All remaining segments
-5. V1.12 — Extensions & FK completion
-6. V1.13 — Indexes, views, utility functions
-7. V0.1–V0.6 — ParametriX (optional)
-
-## Key Features
-
-✅ **Immutable audit patterns** (AuditLog, DocumentVersion, BOQVersion, etc.)  
-✅ **PII-flagged columns** (email, phone, ipAddress, etc.)  
-✅ **150+ performance indexes** for query optimization  
-✅ **6 materialized views** for reporting  
-✅ **Polymorphic reference patterns** (entityType + entityId)  
-✅ **Scope-qualified role assignment** (global/org/project)  
-✅ **JSON columns** for flexible, schema-agnostic storage  
-
-## Documentation
-
-For complete details, see **MIGRATION_MANIFEST.md** which includes:
-- Full entity descriptions and relationships
-- Foreign key mapping
-- Index strategy
-- View definitions
-- Utility functions
-- Migration verification steps
-
-## Troubleshooting
-
-### Foreign Key Constraint Errors
-Ensure migrations are applied in exact version order. Earlier versions must be fully applied before later ones.
-
-### Missing Views or Functions
-If views or functions fail to create, verify that V1.13 was applied successfully. It depends on all earlier migrations being complete.
-
-### Duplicate Key Errors on Insert
-Some tables have UNIQUE constraints (e.g., `(contractId, number)` on Contract). Verify input data doesn't violate these constraints before bulk insertion.
+**Current state**: schema v1.13 — 84 tables, 6 views, 139 foreign keys, complete migration set. Standards layer added; first production consumer TBD.
 
 ---
 
-## Azure PostgreSQL Deployment
+## Start here
 
-### Prerequisites
-- Azure subscription with PostgreSQL permissions
-- Azure Portal access
-- `psql` client installed locally (or via Docker)
-- Docker installed (for schema documentation generation)
+| You are | Read |
+|---|---|
+| A product engineer about to build against IOX | [`ENGINEER_HANDBOOK.md`](./ENGINEER_HANDBOOK.md) |
+| Proposing a schema change | [`GOVERNANCE.md`](./GOVERNANCE.md) |
+| Setting up local development | [`docs/LOCAL_DEV.md`](./docs/LOCAL_DEV.md) |
+| Deploying to Azure | [`docs/DEPLOY.md`](./docs/DEPLOY.md) |
+| Looking up what's in the schema | [`docs/MODULES.md`](./docs/MODULES.md) · [`MIGRATION_MANIFEST.md`](./MIGRATION_MANIFEST.md) |
+| Tracking what's changed | [`CHANGELOG.md`](./CHANGELOG.md) |
+| Tracking polymorphic refs | [`docs/POLYMORPHIC_REFS.md`](./docs/POLYMORPHIC_REFS.md) |
 
-### Step 1: Create Azure PostgreSQL Flexible Server
+---
 
-1. Go to [Azure Portal](https://portal.azure.com)
-2. Create a new **Azure Database for PostgreSQL — Flexible Server**
-3. Configure:
-   - **Server name:** `iox-server` (or your choice)
-   - **Admin username:** `dbadmin`
-   - **Password:** Choose a strong password
-   - **PostgreSQL version:** 14 or later
-   - **Tier:** Burstable or General Purpose (depending on load)
-   - **Storage:** 32+ GB
-4. Go to **Networking** and add your IP to the firewall rules
-5. Note your server details:
-   - Server name (FQDN): `iox-server.postgres.database.azure.com`
-   - Admin user: `dbadmin@iox-server`
-
-### Step 2: Create the Database
+## 30-second tour
 
 ```bash
-# Connect to the master database
-psql -h iox-server.postgres.database.azure.com \
-     -U dbadmin@iox-server \
-     -d postgres
+# Local Postgres with the full schema + seed data:
+docker compose up -d                 # or: npm run db:up
 
-# Inside psql:
-CREATE DATABASE iox_dev;
-\q
+# In application code:
+import type { Project, Contract, EntityType } from '@iox/types';
+import { CORE_ANCHORS, FOREIGN_KEYS } from '@iox/types';
 ```
 
-### Step 3: Apply Migrations
+Repeat after me: **no cross-module foreign keys except via Core anchors** (`CostPlan`, `Project`, `Contract`). That's the one rule. Everything else in `GOVERNANCE.md` is process.
 
-```bash
-# Set environment variables with your Azure credentials
-export PG_HOST="iox-server.postgres.database.azure.com"
-export PG_DB="iox_dev"
-export PG_USER="dbadmin@iox-server"
-export PG_PASSWORD="YourSecurePassword!"
+---
 
-# Run the migration script
-bash scripts/apply_migrations.sh
+## Repository layout
+
 ```
-
-The script will:
-- Verify the connection
-- Apply all 7 migrations in strict dependency order (V1.0 → V1.13 + ParametriX)
-- Display verification statistics
-
-### Step 4: Load Seed Data (Optional)
-
-```bash
-# Apply realistic construction project sample data
-psql -h $PG_HOST \
-     -U $PG_USER \
-     -d $PG_DB \
-     -f schema/seed/seed_data.sql
-```
-
-This populates:
-- 3 Organizations (developer, contractor, QS consultant)
-- 6 Users with roles and permissions
-- 1 Project: Southgate Business Park
-- Contract, budgets, cost plans, BOQ structures
-- Documents, meetings, action items
-- Risk items and parametric cost estimates
-
-### Step 5: Generate Schema Documentation
-
-```bash
-# Generate HTML documentation with ERD diagrams
-bash scripts/generate_docs.sh
-```
-
-This creates `docs/schema-html/index.html` with:
-- Entity-Relationship Diagrams per domain segment
-- Complete table definitions, column types, and constraints
-- Foreign key relationships and index details
-- Searchable reference
-
-**Note:** Requires Docker. Open the HTML file in a browser to view the documentation.
-
-### Verification
-
-After deployment, verify the schema:
-
-```bash
-# Check base tables (expected: 84)
-psql -h $PG_HOST -U $PG_USER -d $PG_DB -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE';"
-
-# Check materialized views (expected: 6)
-psql -h $PG_HOST -U $PG_USER -d $PG_DB -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'VIEW';"
-
-# Check foreign keys (expected: ~95)
-psql -h $PG_HOST -U $PG_USER -d $PG_DB -c "SELECT COUNT(*) FROM information_schema.table_constraints WHERE constraint_type = 'FOREIGN KEY';"
-
-# Verify views are accessible
-psql -h $PG_HOST -U $PG_USER -d $PG_DB -c "SELECT * FROM \"ProjectSummary\" LIMIT 1;"
+construction_data_model_docs/
+├── README.md                  ← you are here
+├── ENGINEER_HANDBOOK.md       ← consumer pitch + getting started
+├── GOVERNANCE.md              ← roles, change classes, RFC flow, versioning
+├── CHANGELOG.md               ← Keep-a-Changelog format
+├── MIGRATION_MANIFEST.md      ← per-migration entity catalogue
+├── CLAUDE.md                  ← project guide for Claude Code sessions
+├── docker-compose.yml         ← local dev Postgres
+├── package.json               ← npm scripts surface
+├── schema/
+│   ├── migrations/            ← Flyway-style V*.sql files
+│   ├── clustering/            ← module-mapping.json (drives diagrams + lint)
+│   └── seed/                  ← Southgate Business Park scenario
+├── iox-types/                 ← @iox/types — generated TypeScript contract
+│   ├── src/generated.ts       ← AUTO — do not edit
+│   └── src/index.ts
+├── tools/
+│   ├── parse-schema.mjs       ← shared SQL parser
+│   ├── generate-types.mjs     ← regenerates @iox/types
+│   ├── generate-modules-doc.mjs
+│   ├── schema-lint.mjs        ← enforces the one rule + audit/PII checks
+│   └── migration-test.sh      ← ephemeral apply + verify
+├── docs/
+│   ├── LOCAL_DEV.md
+│   ├── DEPLOY.md              ← Azure
+│   ├── MODULES.md             ← AUTO — generated
+│   ├── POLYMORPHIC_REFS.md
+│   └── rfcs/                  ← RFCs follow 0000-template.md
+└── scripts/                   ← SchemaSpy + business architecture diagram
 ```
 
 ---
 
-## Support
+## Daily commands
 
-- Refer to MIGRATION_MANIFEST.md for detailed documentation
-- Check Notion Data Model Hub for entity specifications and decisions
-- Review Changelog in Notion for breaking changes between versions
+All run from the repo root.
+
+```bash
+npm run db:up           # start local Postgres with schema + seed
+npm run db:reset        # nuke + recreate (after editing a migration)
+npm run db:psql         # psql shell into the running container
+
+npm run lint            # schema-lint — fails on errors, warns on rest
+npm run types           # regenerate @iox/types
+npm run modules         # regenerate docs/MODULES.md
+npm run generate        # types + modules together
+
+npm run typecheck       # tsc --noEmit on iox-types
+npm run migration:test  # disposable Postgres, full apply + verify
+npm test                # generate:check + lint + typecheck
+```
+
+`npm test` is what CI runs. Run it locally before opening a PR.
+
+---
+
+## How this repo is governed
+
+- **One rule** — no cross-module FKs except via Core anchors. CI-enforced.
+- **Three change classes** — additive (1 reviewer), behavioral (2 reviewers, 1-day notice), breaking (RFC, 5-day window). Full details: [`GOVERNANCE.md`](./GOVERNANCE.md).
+- **SemVer** on Core; module versions pinned to a Core minor.
+- **Generated artefacts checked in** (`iox-types/src/generated.ts`, `docs/MODULES.md`) — CI fails if you forget to regenerate.
+
+---
+
+## Known issues at v1.13
+
+Picked up by `npm run lint`, documented in [`CHANGELOG.md`](./CHANGELOG.md), and proposed for resolution in the active RFCs:
+
+- `User.password` plaintext name → [RFC 0002](./docs/rfcs/0002-rename-user-password-to-password-hash.md)
+- Three orphan tables → [RFC 0001](./docs/rfcs/0001-resolve-orphan-tables.md)
+- Two cross-module FK violations → [RFC 0003](./docs/rfcs/0003-cross-module-fk-violations.md)
+
+---
+
+## Status
+
+Schema **stable** at v1.13. Standards layer **introduced** this commit. First production consumer **not yet built** — see the strategic notes in [`CHANGELOG.md`](./CHANGELOG.md#unreleased).

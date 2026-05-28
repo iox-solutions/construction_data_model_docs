@@ -1,0 +1,34 @@
+{
+  "name": "@iox/data-model",
+  "version": "1.13.0",
+  "description": "IOX shared data model — schema, types, governance, and tooling.",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "iox-types"
+  ],
+  "scripts": {
+    "lint": "node tools/schema-lint.mjs",
+    "lint:warn-only": "node tools/schema-lint.mjs --warn-only",
+    "types": "node tools/generate-types.mjs",
+    "types:check": "node tools/generate-types.mjs && git diff --exit-code -- iox-types/src/generated.ts",
+    "modules": "node tools/generate-modules-doc.mjs",
+    "modules:check": "node tools/generate-modules-doc.mjs && git diff --exit-code -- docs/MODULES.md",
+    "generate": "npm run types && npm run modules",
+    "generate:check": "npm run types:check && npm run modules:check",
+    "typecheck": "tsc -p iox-types/tsconfig.json --noEmit",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d",
+    "db:psql": "docker compose exec iox-db psql -U iox -d iox_dev",
+    "migration:test": "bash tools/migration-test.sh",
+    "hooks:install": "git config core.hooksPath .githooks && echo 'pre-commit hooks active'",
+    "test": "npm run generate:check && npm run lint && npm run typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

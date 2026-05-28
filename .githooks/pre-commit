@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# IOX pre-commit hook.
+#
+# Activate once per clone:
+#   npm run hooks:install
+#   (or: git config core.hooksPath .githooks)
+#
+# What it does:
+#   1. Schema lint — fails commit on R1/R2/R6 errors.
+#   2. Generated artefact freshness — fails commit if you forgot to regenerate
+#      after editing a migration.
+#
+# Skip with `git commit --no-verify` for emergency fixes. Don't make that a habit.
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# Only run if a migration file or module-mapping.json changed in this commit.
+# Avoids running tools on doc-only commits — keeps commit latency tight.
+CHANGED=$(git diff --cached --name-only)
+NEEDS_CHECK=0
+if echo "$CHANGED" | grep -qE '^schema/migrations/.*\.sql$'; then NEEDS_CHECK=1; fi
+if echo "$CHANGED" | grep -qE '^schema/clustering/module-mapping\.json$'; then NEEDS_CHECK=1; fi
+if echo "$CHANGED" | grep -qE '^tools/(parse-schema|generate-types|generate-modules-doc|schema-lint)\.mjs$'; then NEEDS_CHECK=1; fi
+
+if [[ $NEEDS_CHECK -eq 0 ]]; then
+  exit 0
+fi
+
+echo "[pre-commit] running schema-lint…"
+if ! node tools/schema-lint.mjs; then
+  echo "[pre-commit] schema-lint failed. Fix errors or commit with --no-verify (and document why)."
+  exit 1
+fi
+
+echo "[pre-commit] checking generated artefacts are fresh…"
+node tools/generate-types.mjs >/dev/null
+node tools/generate-modules-doc.mjs >/dev/null
+
+if ! git diff --quiet -- iox-types/src/generated.ts docs/MODULES.md; then
+  echo "[pre-commit] generated files were out of date. Updated:"
+  git diff --name-only -- iox-types/src/generated.ts docs/MODULES.md
+  echo "Stage them with: git add iox-types/src/generated.ts docs/MODULES.md"
+  echo "Then commit again."
+  exit 1
+fi
+
+echo "[pre-commit] OK."

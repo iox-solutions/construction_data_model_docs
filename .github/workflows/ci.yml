@@ -1,0 +1,125 @@
+name: IOX CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Limit one concurrent run per ref — newer pushes cancel older runs on the same PR.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  schema:
+    name: Schema checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # No npm install needed — tools are zero-dep .mjs files.
+      - name: Schema lint
+        run: node tools/schema-lint.mjs
+
+      - name: Regenerate types
+        run: node tools/generate-types.mjs
+
+      - name: Regenerate module catalogue
+        run: node tools/generate-modules-doc.mjs
+
+      - name: Assert generated files are in sync
+        # Any diff means the author forgot to re-run a generator. Fail loudly.
+        run: |
+          if ! git diff --quiet -- iox-types/src/generated.ts docs/MODULES.md; then
+            echo "::error::Generated files are out of date. Run:"
+            echo "  node tools/generate-types.mjs"
+            echo "  node tools/generate-modules-doc.mjs"
+            echo "and commit the result."
+            git diff -- iox-types/src/generated.ts docs/MODULES.md
+            exit 1
+          fi
+
+  types:
+    name: TypeScript compile
+    runs-on: ubuntu-latest
+    needs: schema
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci || npm install
+
+      - name: Typecheck iox-types
+        run: npx tsc -p iox-types/tsconfig.json --noEmit
+
+  migrations:
+    name: Migration apply + seed
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: iox_test
+          POSTGRES_USER: iox
+          POSTGRES_PASSWORD: iox
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U iox -d iox_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: iox
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: iox
+      PGDATABASE: iox_test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install psql
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Apply migrations in version order
+        run: |
+          set -euo pipefail
+          for f in \
+            schema/migrations/iox-core/V1.0__iox_core_project_contract.sql \
+            schema/migrations/iox-core/V1.1__iox_core_identity_access.sql \
+            schema/migrations/iox-core/V1.2__iox_core_organisation_project.sql \
+            schema/migrations/iox-core/V1.3_to_V1.11__iox_core_remaining_segments.sql \
+            schema/migrations/iox-core/V1.12__iox_core_extensions_and_foreign_keys.sql \
+            schema/migrations/iox-core/V1.13__iox_core_schema_completion.sql \
+            schema/migrations/parametrix/V0.1_to_V0.6__parametrix_parametric_estimation.sql; do
+            echo "::group::$f"
+            psql -v ON_ERROR_STOP=1 -f "$f"
+            echo "::endgroup::"
+          done
+
+      - name: Load seed data
+        run: psql -v ON_ERROR_STOP=1 -f schema/seed/seed_data.sql
+
+      - name: Verify counts
+        run: |
+          set -euo pipefail
+          TABLES=$(psql -At -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE';")
+          VIEWS=$(psql  -At -c "SELECT COUNT(*) FROM information_schema.views  WHERE table_schema='public';")
+          FKS=$(psql    -At -c "SELECT COUNT(*) FROM information_schema.table_constraints WHERE constraint_type='FOREIGN KEY' AND constraint_schema='public';")
+          USERS=$(psql  -At -c 'SELECT COUNT(*) FROM "User";')
+          [ "$TABLES" = "84" ]  || { echo "::error::tables=$TABLES (expected 84)"; exit 1; }
+          [ "$VIEWS"  = "6"  ]  || { echo "::error::views=$VIEWS (expected 6)";   exit 1; }
+          [ "$FKS"    -ge 120 ] || { echo "::error::fks=$FKS (expected ≥ 120)";   exit 1; }
+          [ "$USERS"  -gt 0  ]  || { echo "::error::no seeded users";              exit 1; }
+          echo "tables=$TABLES views=$VIEWS fks=$FKS users=$USERS — OK"

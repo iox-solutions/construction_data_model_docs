@@ -15,14 +15,24 @@ Module versions (ParametriX, ProcureX, etc.) are pinned to a Core MAJOR.MINOR �
 
 ## [Unreleased]
 
+### Breaking
+- **RFC 0002**: `User.password` renamed to `User.passwordHash` in V1.14. Deprecation window waived (no production consumer). `COMMENT ON COLUMN` documents the Argon2id contract and the audit-log prohibition. `schema-lint` R6 (password-plaintext) drops from 1 error to 0.
+
 ### Changed
-- Module reassignment (RFC 0001, behavioral — no SQL):
-  - `ProjectTeam` assigned to **Core** (identity infrastructure).
-  - `CommunicationProtocol` assigned to **ProcureX** (consumed by transmittal/query workflows).
-  - `QASheet` assigned to **ProcureX** (QA workflow sits alongside NCR; stubs retained for future fleshing-out rather than deletion).
+- **RFC 0001** (additive — module-mapping.json only, no SQL): three orphan tables assigned to modules.
+  - `ProjectTeam` → **Core** (identity infrastructure).
+  - `CommunicationProtocol` → **ProcureX** (consumed by transmittal/query workflows).
+  - `QASheet` → **ProcureX** (sibling to NCR; stubs retained for a future QA RFC rather than dropped).
   - `schema-lint` R7 (orphan-table) drops from 3 warnings to 0.
 
 ### Added
+- V1.14 migration repairs three pre-existing broken FK declarations from V1.12 (columns that were never added to the corresponding CREATE TABLE statements):
+  - `QASheet.contractId` + `fk_QASheet_contractId`
+  - `BOQ.createdById` + `fk_BOQ_createdById`
+  - `Query.assignedToId` + `fk_Query_assignedToId`
+
+  Each adds the column, the FK to its target, and a supporting index. The broken declarations were removed from V1.12 (greenfield-safe, no environments had successfully applied V1.12). `migration-test.sh` now passes end-to-end (84 tables, 139 FKs, seed loads).
+- `tools/parse-schema.mjs` now handles `ALTER TABLE … ADD COLUMN` and `ALTER TABLE … RENAME COLUMN`, so `generate-types` and `schema-lint` see post-CREATE-TABLE column changes.
 - `docker-compose.yml` for one-command local Postgres with full schema and seed data applied.
 - `@iox/types` package — generated TypeScript interfaces, module map, FK catalogue, and `EntityType` union from the migration SQL.
 - `tools/parse-schema.mjs` — shared SQL parser for migrations.
@@ -33,17 +43,15 @@ Module versions (ParametriX, ProcureX, etc.) are pinned to a Core MAJOR.MINOR �
 - `ENGINEER_HANDBOOK.md` — consumer-facing intro.
 - `.github/pull_request_template.md` and `docs/rfcs/0000-template.md`.
 
-### Known issues surfaced by lint
-- `User.password` is a plaintext-named column — should be `passwordHash` (see RFC 0002).
+### Outstanding known issues
 - Two cross-module FK violations (see RFC 0003):
   - `CertifiedPaymentAllocation` (core) → `CertifiedPayment` (reportx)
   - `CostPlanElement` (core) → `CostPlanArea` (planx)
-- ~~Three orphan tables (`ProjectTeam`, `CommunicationProtocol`, `QASheet`)~~ — resolved by RFC 0001 above.
 
-### Known issues surfaced during landing
-- **V1.12 broken FK**: `ALTER TABLE "QASheet" ADD CONSTRAINT fk_QASheet_contractId` references a column that does not exist in `QASheet`. Static parsers silently accept it; `migration-test.sh` under `ON_ERROR_STOP=1` would fail at this line. To be fixed in RFC 0002's V1.14 migration (add the column + re-issue the FK there; V1.12 remains immutable).
-
-These predate the v1.13 baseline and are tracked for resolution in the next minor.
+### Resolved this cycle
+- ~~Three orphan tables (`ProjectTeam`, `CommunicationProtocol`, `QASheet`)~~ — resolved by RFC 0001.
+- ~~`User.password` plaintext-named column~~ — resolved by RFC 0002 (V1.14).
+- ~~V1.12 broken FK declarations (QASheet/BOQ/Query)~~ — resolved by V1.14 (see Added above).
 
 ---
 

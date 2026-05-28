@@ -67,7 +67,7 @@ ALTER TABLE "VEItem" ADD CONSTRAINT "fk_VEItem_reviewedById" FOREIGN KEY ("revie
 -- =====================================================================
 
 ALTER TABLE "BOQ" ADD CONSTRAINT "fk_BOQ_contractId" FOREIGN KEY ("contractId") REFERENCES "Contract"("contractId");
-ALTER TABLE "BOQ" ADD CONSTRAINT "fk_BOQ_createdById" FOREIGN KEY ("createdById") REFERENCES "User"("userId");
+-- fk_BOQ_createdById moved to V1.14 (column was missing in CREATE TABLE).
 
 ALTER TABLE "BOQBill" ADD CONSTRAINT "fk_BOQBill_boqId" FOREIGN KEY ("boqId") REFERENCES "BOQ"("boqId");
 
@@ -85,7 +85,10 @@ ALTER TABLE "WorkOrder" ADD CONSTRAINT "fk_WorkOrder_issuedById" FOREIGN KEY ("i
 -- Foreign Keys - QA (v1.7)
 -- =====================================================================
 
-ALTER TABLE "QASheet" ADD CONSTRAINT "fk_QASheet_contractId" FOREIGN KEY ("contractId") REFERENCES "Contract"("contractId");
+-- Removed in v1.14: the original declaration referenced a "contractId" column
+-- that does not exist in QASheet (CREATE TABLE in V1.3_to_V1.11 only defined
+-- qaSheetId, projectId, title, status). The column and FK are added correctly
+-- in V1.14. See RFC 0001's "Follow-up surfaced during landing".
 
 -- =====================================================================
 -- Foreign Keys - Queries (v1.8)
@@ -93,7 +96,7 @@ ALTER TABLE "QASheet" ADD CONSTRAINT "fk_QASheet_contractId" FOREIGN KEY ("contr
 
 ALTER TABLE "Query" ADD CONSTRAINT "fk_Query_contractId" FOREIGN KEY ("contractId") REFERENCES "Contract"("contractId");
 ALTER TABLE "Query" ADD CONSTRAINT "fk_Query_raisedById" FOREIGN KEY ("raisedById") REFERENCES "User"("userId");
-ALTER TABLE "Query" ADD CONSTRAINT "fk_Query_assignedToId" FOREIGN KEY ("assignedToId") REFERENCES "User"("userId");
+-- fk_Query_assignedToId moved to V1.14 (column was missing in CREATE TABLE).
 
 ALTER TABLE "QueryResponse" ADD CONSTRAINT "fk_QueryResponse_queryId" FOREIGN KEY ("queryId") REFERENCES "Query"("queryId");
 ALTER TABLE "QueryResponse" ADD CONSTRAINT "fk_QueryResponse_respondedById" FOREIGN KEY ("respondedById") REFERENCES "User"("userId");

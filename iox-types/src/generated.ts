@@ -178,6 +178,7 @@ export interface BOQ {
   "status"?: string;
   "createdAt"?: Date;
   "updatedAt"?: Date;
+  "createdById"?: string | null;
 }
 
 export interface BOQBill {
@@ -799,6 +800,7 @@ export interface QASheet {
   "projectId": string;
   "title": string;
   "status"?: string;
+  "contractId"?: string | null;
 }
 
 /**
@@ -815,6 +817,7 @@ export interface Query {
   "responseRequiredBy"?: Date | null;
   "createdAt"?: Date;
   "updatedAt"?: Date;
+  "assignedToId"?: string | null;
 }
 
 export interface QueryAttachment {
@@ -956,7 +959,7 @@ export interface TransmittalDocument {
 export interface User {
   "userId": string;
   "email": string;
-  "password": string;
+  "passwordHash": string;
   "firstName": string;
   "lastName": string;
   "phone"?: string | null;

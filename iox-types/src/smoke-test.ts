@@ -64,7 +64,7 @@ const action: ActionItem = {
 const user: User = {
   userId: 'u-1',
   email: 'user@example.com',
-  password: 'redacted', // tracked as a rename target — see RFC 0002
+  passwordHash: 'argon2id$...',
   firstName: 'A',
   lastName: 'B',
   allowedCountries: ['GB', 'IE'],

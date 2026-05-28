@@ -4,6 +4,8 @@
 //   CREATE [UNIQUE] INDEX [name] ON "X" [USING method] ("col"[, ...]);
 //   CREATE VIEW "X" AS ... ;
 //   ALTER TABLE "X" ADD CONSTRAINT "name" FOREIGN KEY ("col"[, ...]) REFERENCES "Y" ("col2"[, ...]);
+//   ALTER TABLE "X" ADD COLUMN "col" TYPE [modifiers];
+//   ALTER TABLE "X" RENAME COLUMN "old" TO "new";
 //   COMMENT ON TABLE "X" IS '...';
 //
 // Not a general SQL parser. Assumes the dialect used by IOX migrations:
@@ -21,6 +23,7 @@ export const MIGRATION_FILES = [
   ['iox-core', 'V1.3_to_V1.11__iox_core_remaining_segments.sql'],
   ['iox-core', 'V1.12__iox_core_extensions_and_foreign_keys.sql'],
   ['iox-core', 'V1.13__iox_core_schema_completion.sql'],
+  ['iox-core', 'V1.14__iox_core_password_hash_and_qa_fk.sql'],
   ['parametrix', 'V0.1_to_V0.6__parametrix_parametric_estimation.sql'],
 ];
 
@@ -129,6 +132,10 @@ const INDEX_RE =
   /^CREATE\s+(UNIQUE\s+)?INDEX\s+(?:"([^"]+)"|(\w+))?\s*ON\s+"([^"]+)"\s*(?:USING\s+\w+\s*)?\(([^)]+)\)/i;
 const ALTER_FK_RE =
   /^ALTER\s+TABLE\s+"([^"]+)"\s+ADD\s+CONSTRAINT\s+"([^"]+)"\s+FOREIGN\s+KEY\s*\(\s*"([^"]+)"\s*\)\s+REFERENCES\s+"([^"]+)"\s*\(\s*"([^"]+)"\s*\)/i;
+const ALTER_ADD_COL_RE =
+  /^ALTER\s+TABLE\s+"([^"]+)"\s+ADD\s+COLUMN\s+("[^"]+"\s+.+)$/i;
+const ALTER_RENAME_COL_RE =
+  /^ALTER\s+TABLE\s+"([^"]+)"\s+RENAME\s+COLUMN\s+"([^"]+)"\s+TO\s+"([^"]+)"\s*$/i;
 const COMMENT_RE = /^COMMENT\s+ON\s+TABLE\s+"([^"]+)"\s+IS\s+'([\s\S]*)'$/i;
 const FUNCTION_RE = /^CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\b/i;
 
@@ -237,6 +244,20 @@ function parseAlterFK(stmt) {
   };
 }
 
+function parseAlterAddColumn(stmt) {
+  const m = stmt.match(ALTER_ADD_COL_RE);
+  if (!m) return null;
+  const col = parseColumnOrConstraint(m[2]);
+  if (col.kind !== 'column') return null;
+  return { table: m[1], column: col };
+}
+
+function parseAlterRenameColumn(stmt) {
+  const m = stmt.match(ALTER_RENAME_COL_RE);
+  if (!m) return null;
+  return { table: m[1], from: m[2], to: m[3] };
+}
+
 function parseComment(stmt) {
   const m = stmt.match(COMMENT_RE);
   if (!m) return null;
@@ -292,6 +313,23 @@ export function parseSchema() {
       const fk = parseAlterFK(stmt);
       if (fk) {
         foreignKeys.push({ ...fk, source: mig.file });
+        continue;
+      }
+      const addCol = parseAlterAddColumn(stmt);
+      if (addCol) {
+        const tbl = tables.get(addCol.table);
+        if (tbl && !tbl.columns.some((c) => c.name === addCol.column.name)) {
+          tbl.columns.push(addCol.column);
+        }
+        continue;
+      }
+      const rename = parseAlterRenameColumn(stmt);
+      if (rename) {
+        const tbl = tables.get(rename.table);
+        if (tbl) {
+          const col = tbl.columns.find((c) => c.name === rename.from);
+          if (col) col.name = rename.to;
+        }
         continue;
       }
       const cm = parseComment(stmt);

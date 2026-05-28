@@ -89,6 +89,7 @@ MIGRATIONS=(
   "iox-core/V1.3_to_V1.11__iox_core_remaining_segments.sql"
   "iox-core/V1.12__iox_core_extensions_and_foreign_keys.sql"
   "iox-core/V1.13__iox_core_schema_completion.sql"
+  "iox-core/V1.14__iox_core_password_hash_and_qa_fk.sql"
   "parametrix/V0.1_to_V0.6__parametrix_parametric_estimation.sql"
 )
 

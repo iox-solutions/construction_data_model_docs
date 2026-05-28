@@ -1,9 +1,9 @@
 # RFC 0002 — Rename `User.password` → `User.passwordHash`
 
-- **Status**: Draft
+- **Status**: Accepted (with waiver)
 - **Author**: Schema Steward
 - **Created**: 2026-05-28
-- **Decision deadline**: TBD
+- **Decided**: 2026-05-28
 - **Related**: schema-lint rule `R6: password-plaintext`
 
 ## Summary
@@ -84,7 +84,27 @@ COMMENT ON COLUMN "User"."password" IS
 - Confirm seed data does not have orchestration scripts that reference the old column name. Audit `scripts/apply_seed_data.sh` before merge.
 - Decide whether the column should be `NOT NULL` once a real auth flow exists. Out of scope here.
 
+## Decision (2026-05-28)
+
+Schema Steward **accepted** the RFC and **granted** the deprecation-window waiver. Greenfield deployment confirmed (no production database). V1.14 ships the single ALTER TABLE RENAME COLUMN + COMMENT ON COLUMN, no generated-column shim.
+
+### Scope expansion during landing
+
+While running `migration-test.sh` (which was **not** part of the original v1.13 verification list — only the static parsers were), three pre-existing broken FK declarations in V1.12 surfaced. All three follow the same pattern: V1.12 declares an FK against a column the original CREATE TABLE did not include. Each fails `psql -v ON_ERROR_STOP=1` and prevents migration-test from running to completion. The static parser silently accepted them.
+
+| Constraint | Missing source column |
+|---|---|
+| `fk_QASheet_contractId` | `QASheet.contractId` |
+| `fk_BOQ_createdById` | `BOQ.createdById` |
+| `fk_Query_assignedToId` | `Query.assignedToId` |
+
+Bundled into V1.14 alongside the password rename: the broken declarations removed from V1.12, the three columns + FKs + indexes added in V1.14. End-to-end `migration-test.sh` now passes (84 tables, 139 FKs, seed loads).
+
+### Tooling change
+
+The shared SQL parser (`tools/parse-schema.mjs`) was extended to handle `ALTER TABLE … ADD COLUMN` and `ALTER TABLE … RENAME COLUMN`. The original parser only handled CREATE TABLE / CREATE INDEX / CREATE VIEW / ALTER TABLE ADD CONSTRAINT FK / COMMENT ON TABLE, so V1.14's ALTERs would otherwise have been invisible to `generate-types` and `schema-lint`.
+
 ## Approval
 
-- [ ] Schema Steward (waiver decision)
+- [x] Schema Steward — waiver granted (2026-05-28)
 - [ ] (No module owners assigned)

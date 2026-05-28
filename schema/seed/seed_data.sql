@@ -33,7 +33,7 @@ INSERT INTO "Organization" (
 INSERT INTO "User" (
   "userId",
   "email",
-  "password",
+  "passwordHash",
   "firstName",
   "lastName",
   "phone",

@@ -1,0 +1,210 @@
+{
+  "lifecycle": ["parametrix", "planx", "procurex", "reportx"],
+
+  "coreAnchors": ["CostPlan", "Project", "Contract"],
+
+  "modules": {
+    "core": {
+      "label": "IOX Core",
+      "description": "Shared data model — foundational objects referenced across all modules",
+      "color": "#1a1a2e",
+      "textColor": "#ffffff",
+      "tables": [
+        "Organization",
+        "Department",
+        "Client",
+        "Project",
+        "Contract",
+        "Contractor",
+        "ContractStage",
+        "Budget",
+        "BudgetVersion",
+        "CostPlan",
+        "CostPlanVersion",
+        "CostPlanElement",
+        "PaymentSchedule",
+        "PaymentScheduleItem",
+        "CertifiedPaymentAllocation",
+        "BenchmarkProject"
+      ]
+    },
+    "parametrix": {
+      "label": "ParametriX",
+      "description": "Parametric cost modelling — build and calibrate cost models from parameters",
+      "color": "#6a0572",
+      "textColor": "#ffffff",
+      "phase": "Pre-Design",
+      "capabilities": [
+        "Build parametric cost models from configurable project parameters",
+        "Run sensitivity analysis to stress-test cost assumptions",
+        "Adjust estimates for risk and confidence levels",
+        "Generate estimates to seed or validate a Cost Plan",
+        "Calibrate models against historical benchmark data"
+      ],
+      "tables": [
+        "ParameterCategory",
+        "Parameter",
+        "ParametricModel",
+        "ModelParameter",
+        "CostRelationship",
+        "CostRelationshipParameter",
+        "ParametricEstimate",
+        "EstimateParameterValue",
+        "EstimateOutputValue",
+        "CalibrationDataSource",
+        "CalibrationDataPoint",
+        "CalibrationDataPointParameter",
+        "SensitivityAnalysis",
+        "RiskAdjustment"
+      ]
+    },
+    "procurex": {
+      "label": "ProcureX",
+      "description": "Tender analysis — manage the full procurement and tendering lifecycle",
+      "color": "#0d47a1",
+      "textColor": "#ffffff",
+      "phase": "Tender & Procurement",
+      "capabilities": [
+        "Manage the tender lifecycle from gate review to contract award",
+        "Issue and respond to tender queries, drawings and documents",
+        "Record meetings, actions, risks, assumptions and NCRs",
+        "Track BOQs, addenda and work orders",
+        "Assess value engineering items against the cost plan"
+      ],
+      "tables": [
+        "NoticeOfWin",
+        "Gate",
+        "GateChecklistItem",
+        "BOQ",
+        "BOQVersion",
+        "BOQBill",
+        "BOQSection",
+        "BOQItem",
+        "BOQStrategy",
+        "VEItem",
+        "TenderQuery",
+        "Query",
+        "QueryResponse",
+        "QueryAttachment",
+        "Meeting",
+        "MeetingAttendee",
+        "MeetingAgendaItem",
+        "MeetingMinutes",
+        "ActionItem",
+        "Document",
+        "DocumentVersion",
+        "Folder",
+        "Transmittal",
+        "TransmittalDocument",
+        "Drawing",
+        "Risk",
+        "Assumption",
+        "Checklist",
+        "ChecklistItem",
+        "NCR",
+        "Addendum",
+        "WorkflowDefinition",
+        "WorkflowInstance",
+        "WorkflowTransition",
+        "Template",
+        "WorkOrder",
+        "HandoverPackage"
+      ]
+    },
+    "planx": {
+      "label": "PlanX",
+      "description": "Cost plan management — develop, issue and maintain cost plans through the project lifecycle",
+      "color": "#1b5e20",
+      "textColor": "#ffffff",
+      "phase": "Design Development",
+      "capabilities": [
+        "Structure cost plans into elemental breakdown areas",
+        "Issue and version cost plans as design develops",
+        "Maintain alignment between plan structure and project budget",
+        "Track cost plan evolution across multiple design iterations"
+      ],
+      "tables": [
+        "CostPlanArea"
+      ]
+    },
+    "reportx": {
+      "label": "ReportX",
+      "description": "Cost report management — track and report contract financials, variations and certified payments",
+      "color": "#bf360c",
+      "textColor": "#ffffff",
+      "phase": "Contract Delivery",
+      "capabilities": [
+        "Track certified payments against the payment schedule",
+        "Record and assess variation orders and early warnings",
+        "Report live contract financial position",
+        "Provide project and programme-level financial dashboards"
+      ],
+      "tables": [
+        "CertifiedPayment",
+        "EarlyWarning",
+        "EarlyWarningVariationOrderLink",
+        "VariationOrder",
+        "ProjectSummary",
+        "ContractStatusSummary",
+        "ContractCostSummary",
+        "UserActivitySummary",
+        "OpenActionItemsByOwner",
+        "DocumentTransmissionAudit"
+      ]
+    },
+    "placeholderx": {
+      "label": "PlaceholderX",
+      "description": "Rate and benchmark data management — maintain reference cost data and market rates",
+      "color": "#4a4a4a",
+      "textColor": "#ffffff",
+      "tables": []
+    }
+  },
+
+  "exclude": [
+    "User",
+    "Role",
+    "Permission",
+    "RolePermission",
+    "UserRole",
+    "AuditLog",
+    "Notification",
+    "PerformanceRating",
+    "ContractMatchKey"
+  ],
+
+  "connectionDescriptions": {
+    "parametrix:CostPlan": {
+      "label": "Parametric estimates are produced to populate and calibrate a Cost Plan",
+      "short": "estimates feed into"
+    },
+    "procurex:Project": {
+      "label": "Meetings, documents, folders, drawings, actions and transmittals are all organised and tracked at the Project level",
+      "short": "activities tracked against"
+    },
+    "procurex:Contract": {
+      "label": "Tender gates, BOQs, queries, risks, assumptions, NCRs, addenda and work orders are all scoped within a Contract",
+      "short": "procurement scoped to"
+    },
+    "procurex:CostPlan": {
+      "label": "Value engineering items are assessed and recorded against a Cost Plan",
+      "short": "VE items assessed against"
+    },
+    "planx:CostPlan": {
+      "label": "Cost Plan Areas define the elemental breakdown structure within a Cost Plan",
+      "short": "defines plan structure"
+    },
+    "reportx:Contract": {
+      "label": "Certified payments, variations and early warnings are all reported and tracked against a Contract",
+      "short": "financials reported on"
+    },
+    "core.CertifiedPaymentAllocation:reportx": {
+      "label": "Payment Schedule Items in Core are allocated against Certified Payments managed in ReportX",
+      "short": "allocates to certified payments"
+    },
+    "core.CostPlanElement:planx": {
+      "label": "Cost Plan Elements from Core are structured and grouped within Cost Plan Areas in PlanX",
+      "short": "elements grouped within areas"
+    }
+  }
+}

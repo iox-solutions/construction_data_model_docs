@@ -1,0 +1,33 @@
+services:
+  iox-db:
+    image: postgres:18
+    container_name: iox-dev-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: iox_dev
+      POSTGRES_USER: iox
+      POSTGRES_PASSWORD: iox
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${IOX_DB_PORT:-5432}:5432"
+    volumes:
+      - iox-pgdata:/var/lib/postgresql/data
+      # Postgres runs /docker-entrypoint-initdb.d/*.sql in lexical order on first boot.
+      # The numbered prefix here drives application order; underlying SQL is unmodified.
+      - ./schema/migrations/iox-core/V1.0__iox_core_project_contract.sql:/docker-entrypoint-initdb.d/01-V1.0-core.sql:ro
+      - ./schema/migrations/iox-core/V1.1__iox_core_identity_access.sql:/docker-entrypoint-initdb.d/02-V1.1-identity.sql:ro
+      - ./schema/migrations/iox-core/V1.2__iox_core_organisation_project.sql:/docker-entrypoint-initdb.d/03-V1.2-org-project.sql:ro
+      - ./schema/migrations/iox-core/V1.3_to_V1.11__iox_core_remaining_segments.sql:/docker-entrypoint-initdb.d/04-V1.3-V1.11-segments.sql:ro
+      - ./schema/migrations/iox-core/V1.12__iox_core_extensions_and_foreign_keys.sql:/docker-entrypoint-initdb.d/05-V1.12-fks.sql:ro
+      - ./schema/migrations/iox-core/V1.13__iox_core_schema_completion.sql:/docker-entrypoint-initdb.d/06-V1.13-views.sql:ro
+      - ./schema/migrations/parametrix/V0.1_to_V0.6__parametrix_parametric_estimation.sql:/docker-entrypoint-initdb.d/07-parametrix.sql:ro
+      - ./schema/seed/seed_data.sql:/docker-entrypoint-initdb.d/99-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U iox -d iox_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  iox-pgdata:
+    driver: local
